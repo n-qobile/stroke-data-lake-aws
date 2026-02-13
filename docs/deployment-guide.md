@@ -452,7 +452,7 @@ aws iam list-roles | findstr stroke-data-lake
 ### Free Tier Limits (First 12 Months)
 
 - **S3:** 5 GB storage, 20,000 GET requests, 2,000 PUT requests
-- **Glue:** 1 million objects stored in Data Catalog
+- **Glue:** 1 million objects stored in Data Catalogue
 - **Athena:** First 10 GB of data scanned per month free (permanent, not just 12 months)
 
 ### Your Estimated Monthly Cost (After Free Tier)
@@ -542,9 +542,9 @@ If you want to keep data but minimise costs:
 
 3. **Create architecture diagram** showing data flow:
    ```
-   Raw CSV → S3 Raw → Glue Crawler → Data Catalog
+   Raw CSV → S3 Raw → Glue Crawler → Data Catalogue
                 ↓
-   Glue ETL Job → S3 Processed → Glue Crawler → Data Catalog
+   Glue ETL Job → S3 Processed → Glue Crawler → Data Catalogue
                                        ↓
                                   Athena Queries → S3 Results
    ```
