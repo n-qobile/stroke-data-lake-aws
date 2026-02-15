@@ -12,7 +12,7 @@ from plotly.subplots import make_subplots
 import plotly.express as px
 
 # ============================================================================
-# VIBRANT GEN Z COLOUR PALETTE
+# VIBRANT GEN Z COLOR PALETTE
 # ============================================================================
 
 COLORS = {
@@ -109,7 +109,7 @@ def add_filter_buttons(fig):
 # ============================================================================
 
 def create_tab1_enhanced():
-    """Create Tab 1 with vibrant colours and better design"""
+    """Create Tab 1 with vibrant colors and better design"""
     
     fig = make_subplots(
         rows=3, cols=4,
