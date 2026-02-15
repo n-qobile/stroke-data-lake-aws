@@ -96,10 +96,10 @@ def add_filter_buttons(fig):
                 xanchor="left",
                 y=1.15,
                 yanchor="top",
-                bgcolor=COLORS['card_bg'],
-                bordercolor=COLORS['stroke_purple'],
+                bgcolor=COLOURS['card_bg'],
+                bordercolor=COLOURS['stroke_purple'],
                 borderwidth=2,
-                font=dict(size=12, color=COLORS['text_primary'])
+                font=dict(size=12, colour=COLOURS['text_primary'])
             ),
         ]
     )
@@ -130,8 +130,8 @@ def create_tab1_enhanced():
     fig.add_trace(go.Indicator(
         mode="number",
         value=len(df),
-        title={"text": "Total Patients", "font": {"size": 18, "color": COLORS['text_primary'], "family": "Arial Black"}},
-        number={"font": {"size": 48, "color": COLORS['stroke_purple'], "family": "Arial Black"}},
+        title={"text": "Total Patients", "font": {"size": 18, "colour": COLOURS['text_primary'], "family": "Arial Black"}},
+        number={"font": {"size": 48, "colour": COLOURS['stroke_purple'], "family": "Arial Black"}},
     ), row=1, col=1)
     
     # KPI 2: Stroke Cases (HOT PINK/RED!)
@@ -139,8 +139,8 @@ def create_tab1_enhanced():
     fig.add_trace(go.Indicator(
         mode="number",
         value=stroke_cases,
-        title={"text": "Stroke Cases 🎗️", "font": {"size": 18, "color": COLORS['text_primary'], "family": "Arial Black"}},
-        number={"font": {"size": 48, "color": COLORS['hot_pink'], "family": "Arial Black"}},
+        title={"text": "Stroke Cases 🎗️", "font": {"size": 18, "colour": COLOURS['text_primary'], "family": "Arial Black"}},
+        number={"font": {"size": 48, "colour": COLOURS['hot_pink'], "family": "Arial Black"}},
     ), row=1, col=2)
     
     # KPI 3: Stroke Rate (Electric styling)
@@ -148,8 +148,8 @@ def create_tab1_enhanced():
     fig.add_trace(go.Indicator(
         mode="number",
         value=stroke_rate,
-        title={"text": "Stroke Rate", "font": {"size": 18, "color": COLORS['text_primary'], "family": "Arial Black"}},
-        number={"suffix": "%", "font": {"size": 48, "color": COLORS['neon_purple'], "family": "Arial Black"}},
+        title={"text": "Stroke Rate", "font": {"size": 18, "colour": COLOURS['text_primary'], "family": "Arial Black"}},
+        number={"suffix": "%", "font": {"size": 48, "colour": COLOURS['neon_purple'], "family": "Arial Black"}},
     ), row=1, col=3)
     
     # KPI 4: Avg Risk Score
@@ -157,8 +157,8 @@ def create_tab1_enhanced():
     fig.add_trace(go.Indicator(
         mode="number",
         value=avg_risk,
-        title={"text": "Avg Risk Score", "font": {"size": 18, "color": COLORS['text_primary'], "family": "Arial Black"}},
-        number={"font": {"size": 48, "color": COLORS['vivid_orange'], "family": "Arial Black"}},
+        title={"text": "Avg Risk Score", "font": {"size": 18, "colour": COLOURS['text_primary'], "family": "Arial Black"}},
+        number={"font": {"size": 48, "colour": COLOURS['vivid_orange'], "family": "Arial Black"}},
     ), row=1, col=4)
     
     # Donut Chart - VIBRANT GRADIENT
@@ -168,8 +168,8 @@ def create_tab1_enhanced():
         values=[stroke_dist[0], stroke_dist[1]],
         hole=0.6,
         marker=dict(
-            colors=[COLORS['neon_purple'], COLORS['hot_pink']],
-            line=dict(color='white', width=3)
+            COLOURS=[COLOURS['neon_purple'], COLOURS['hot_pink']],
+            line=dict(colour='white', width=3)
         ),
         textinfo='label+percent',
         textfont=dict(size=16, family="Arial Black"),
@@ -188,14 +188,14 @@ def create_tab1_enhanced():
         x=age_analysis['age_group'],
         y=age_analysis['stroke_count'],
         marker=dict(
-            color=age_analysis['stroke_count'],
-            colorscale=[[0, COLORS['neon_purple']], [0.5, COLORS['vivid_orange']], [1, COLORS['hot_pink']]],
+            colour=age_analysis['stroke_count'],
+            colorscale=[[0, COLOURS['neon_purple']], [0.5, COLOURS['vivid_orange']], [1, COLOURS['hot_pink']]],
             showscale=False,
-            line=dict(color='white', width=2)
+            line=dict(colour='white', width=2)
         ),
         text=age_analysis['stroke_count'],
         textposition='outside',
-        textfont=dict(size=16, family="Arial Black", color=COLORS['text_primary']),
+        textfont=dict(size=16, family="Arial Black", colour=COLOURS['text_primary']),
         hovertemplate="<b>%{x}</b><br>Stroke Cases: %{y}<br><extra></extra>"
     ), row=2, col=3)
     
@@ -211,15 +211,15 @@ def create_tab1_enhanced():
     fig.add_trace(go.Table(
         header=dict(
             values=["<b>" + h + "</b>" for h in insights_data[0]],
-            fill_color=COLORS['stroke_purple'],
-            font=dict(color='white', size=15, family="Arial Black"),
+            fill_color=COLOURS['stroke_purple'],
+            font=dict(colour='white', size=15, family="Arial Black"),
             align='left',
             height=40
         ),
         cells=dict(
             values=list(zip(*insights_data[1:])),
-            fill_color=[COLORS['card_bg'], COLORS['background']],
-            font=dict(color=COLORS['text_primary'], size=13),
+            fill_color=[COLOURS['card_bg'], COLOURS['background']],
+            font=dict(colour=COLOURS['text_primary'], size=13),
             align='left',
             height=35
         )
@@ -229,31 +229,31 @@ def create_tab1_enhanced():
     fig.update_layout(
         title={
             'text': "🎗️ Stroke Risk Analytics - Executive Overview",
-            'font': {'size': 28, 'color': COLORS['stroke_purple'], 'family': 'Arial Black'},
+            'font': {'size': 28, 'colour': COLOURS['stroke_purple'], 'family': 'Arial Black'},
             'x': 0.5,
             'xanchor': 'center',
             'y': 0.98
         },
         showlegend=False,
         height=1000,
-        plot_bgcolor=COLORS['background'],
-        paper_bgcolor=COLORS['background'],
-        font=dict(family="Arial", color=COLORS['text_primary']),
+        plot_bgcolor=COLOURS['background'],
+        paper_bgcolor=COLOURS['background'],
+        font=dict(family="Arial", colour=COLOURS['text_primary']),
         annotations=[
             dict(
                 text="Created by Nqobile M | Speech Therapist & Cloud Data Engineer",
                 xref="paper", yref="paper",
                 x=0.5, y=-0.05,
                 showarrow=False,
-                font=dict(size=12, color=COLORS['text_secondary']),
+                font=dict(size=12, colour=COLOURS['text_secondary']),
                 xanchor='center'
             )
         ]
     )
     
-    fig.update_xaxes(title_text="Age Group", row=2, col=3, gridcolor=COLORS['gridlines'], 
+    fig.update_xaxes(title_text="Age Group", row=2, col=3, gridcolor=COLOURS['gridlines'], 
                      title_font=dict(size=14, family="Arial Black"))
-    fig.update_yaxes(title_text="Stroke Cases", row=2, col=3, gridcolor=COLORS['gridlines'],
+    fig.update_yaxes(title_text="Stroke Cases", row=2, col=3, gridcolor=COLOURS['gridlines'],
                      title_font=dict(size=14, family="Arial Black"))
     
     return fig
@@ -290,14 +290,14 @@ def create_tab2_enhanced():
         x=residence_analysis['residence'],
         y=residence_analysis['stroke_cases'],
         marker=dict(
-            color=[COLORS['electric_blue'], COLORS['lime_green']],
-            line=dict(color='white', width=3)
+            colour=[COLOURS['electric_blue'], COLOURS['lime_green']],
+            line=dict(colour='white', width=3)
         ),
         text=[f"<b>{cases}</b><br>{rate:.1f}%" 
               for cases, rate in zip(residence_analysis['stroke_cases'], 
                                     residence_analysis['stroke_rate_pct'])],
         textposition='outside',
-        textfont=dict(size=18, family="Arial Black", color=COLORS['text_primary']),
+        textfont=dict(size=18, family="Arial Black", colour=COLOURS['text_primary']),
         hovertemplate="<b>%{x}</b><br>Stroke Cases: %{y}<br><extra></extra>",
         showlegend=False,
         width=0.6
@@ -309,9 +309,9 @@ def create_tab2_enhanced():
         xref="paper", yref="paper",
         x=0.5, y=0.35,
         showarrow=False,
-        font=dict(size=16, color=COLORS['hot_pink'], family="Arial Black"),
-        bgcolor=COLORS['card_bg'],
-        bordercolor=COLORS['electric_blue'],
+        font=dict(size=16, colour=COLOURS['hot_pink'], family="Arial Black"),
+        bgcolor=COLOURS['card_bg'],
+        bordercolor=COLOURS['electric_blue'],
         borderwidth=3,
         borderpad=15
     )
@@ -325,13 +325,13 @@ def create_tab2_enhanced():
         data['age_group'] = pd.Categorical(data['age_group'], categories=age_order, ordered=True)
         data = data.sort_values('age_group')
         
-        color = COLORS['electric_blue'] if residence == 'Urban' else COLORS['lime_green']
+        colour = COLOURS['electric_blue'] if residence == 'Urban' else COLOURS['lime_green']
         
         fig.add_trace(go.Bar(
             name=residence,
             x=data['age_group'],
             y=data['stroke'],
-            marker=dict(color=color, line=dict(color='white', width=2)),
+            marker=dict(colour=colour, line=dict(colour='white', width=2)),
             hovertemplate="<b>%{x} - " + residence + "</b><br>Cases: %{y}<extra></extra>"
         ), row=2, col=1)
     
@@ -340,7 +340,7 @@ def create_tab2_enhanced():
         data = df[df['residence_type'] == residence]
         stroke_data = data[data['stroke'] == 1]
         
-        color = COLORS['electric_blue'] if residence == 'Urban' else COLORS['lime_green']
+        colour = COLOURS['electric_blue'] if residence == 'Urban' else COLOURS['lime_green']
         
         fig.add_trace(go.Scatter(
             name=residence,
@@ -349,9 +349,9 @@ def create_tab2_enhanced():
             mode='markers',
             marker=dict(
                 size=10,
-                color=color,
+                colour=colour,
                 opacity=0.7,
-                line=dict(width=2, color='white')
+                line=dict(width=2, colour='white')
             ),
             hovertemplate="<b>" + residence + "</b><br>Age: %{x}<br>Risk: %{y}<extra></extra>"
         ), row=2, col=2)
@@ -359,14 +359,14 @@ def create_tab2_enhanced():
     fig.update_layout(
         title={
             'text': "🗺️ Geographic Analysis - Healthcare Access Disparities",
-            'font': {'size': 28, 'color': COLORS['electric_blue'], 'family': 'Arial Black'},
+            'font': {'size': 28, 'colour': COLOURS['electric_blue'], 'family': 'Arial Black'},
             'x': 0.5,
             'xanchor': 'center'
         },
         height=900,
-        plot_bgcolor=COLORS['background'],
-        paper_bgcolor=COLORS['background'],
-        font=dict(family="Arial", color=COLORS['text_primary']),
+        plot_bgcolor=COLOURS['background'],
+        paper_bgcolor=COLOURS['background'],
+        font=dict(family="Arial", colour=COLOURS['text_primary']),
         barmode='group',
         showlegend=True,
         legend=dict(
@@ -376,8 +376,8 @@ def create_tab2_enhanced():
             xanchor="right",
             x=1,
             font=dict(size=13, family="Arial Black"),
-            bgcolor=COLORS['card_bg'],
-            bordercolor=COLORS['electric_blue'],
+            bgcolor=COLOURS['card_bg'],
+            bordercolor=COLOURS['electric_blue'],
             borderwidth=2
         ),
         annotations=fig.layout.annotations + (dict(
@@ -385,13 +385,13 @@ def create_tab2_enhanced():
             xref="paper", yref="paper",
             x=0.5, y=-0.05,
             showarrow=False,
-            font=dict(size=12, color=COLORS['text_secondary']),
+            font=dict(size=12, colour=COLOURS['text_secondary']),
             xanchor='center'
         ),)
     )
     
-    fig.update_xaxes(gridcolor=COLORS['gridlines'], title_font=dict(size=14, family="Arial Black"))
-    fig.update_yaxes(gridcolor=COLORS['gridlines'], title_font=dict(size=14, family="Arial Black"))
+    fig.update_xaxes(gridcolor=COLOURS['gridlines'], title_font=dict(size=14, family="Arial Black"))
+    fig.update_yaxes(gridcolor=COLOURS['gridlines'], title_font=dict(size=14, family="Arial Black"))
     
     return fig
 
@@ -435,10 +435,10 @@ def create_tab3_enhanced():
         x=risk_combos['label'],
         y=risk_combos['stroke_rate_pct'],
         marker=dict(
-            color=risk_combos['stroke_rate_pct'],
-            colorscale=[[0, COLORS['amber']], [0.5, COLORS['vivid_orange']], [1, COLORS['hot_pink']]],
+            colour=risk_combos['stroke_rate_pct'],
+            colorscale=[[0, COLOURS['amber']], [0.5, COLOURS['vivid_orange']], [1, COLOURS['hot_pink']]],
             showscale=False,
-            line=dict(color='white', width=2)
+            line=dict(colour='white', width=2)
         ),
         text=[f"<b>{rate:.1f}%</b>" for rate in risk_combos['stroke_rate_pct']],
         textposition='outside',
@@ -453,11 +453,11 @@ def create_tab3_enhanced():
         x=risk_dist.index,
         y=risk_dist.values,
         marker=dict(
-            color=risk_dist.index,
-            colorscale=[[0, COLORS['lime_green']], [0.3, COLORS['yellow']], 
-                       [0.6, COLORS['vivid_orange']], [1, COLORS['hot_pink']]],
+            colour=risk_dist.index,
+            colorscale=[[0, COLOURS['lime_green']], [0.3, COLOURS['yellow']], 
+                       [0.6, COLOURS['vivid_orange']], [1, COLOURS['hot_pink']]],
             showscale=False,
-            line=dict(color='white', width=2)
+            line=dict(colour='white', width=2)
         ),
         text=risk_dist.values,
         textposition='outside',
@@ -483,15 +483,15 @@ def create_tab3_enhanced():
     fig.add_trace(go.Table(
         header=dict(
             values=["<b>" + h + "</b>" for h in table_data[0]],
-            fill_color=COLORS['vivid_orange'],
-            font=dict(color='white', size=14, family="Arial Black"),
+            fill_color=COLOURS['vivid_orange'],
+            font=dict(colour='white', size=14, family="Arial Black"),
             align='left',
             height=35
         ),
         cells=dict(
             values=list(zip(*table_data[1:])),
-            fill_color=[COLORS['card_bg'], COLORS['background']],
-            font=dict(color=COLORS['text_primary'], size=12),
+            fill_color=[COLOURS['card_bg'], COLOURS['background']],
+            font=dict(colour=COLOURS['text_primary'], size=12),
             align='left',
             height=30
         )
@@ -500,29 +500,29 @@ def create_tab3_enhanced():
     fig.update_layout(
         title={
             'text': "🔍 Risk Factor Analysis - Why Strokes Occur",
-            'font': {'size': 28, 'color': COLORS['vivid_orange'], 'family': 'Arial Black'},
+            'font': {'size': 28, 'colour': COLOURS['vivid_orange'], 'family': 'Arial Black'},
             'x': 0.5,
             'xanchor': 'center'
         },
         showlegend=False,
         height=900,
-        plot_bgcolor=COLORS['background'],
-        paper_bgcolor=COLORS['background'],
-        font=dict(family="Arial", color=COLORS['text_primary']),
+        plot_bgcolor=COLOURS['background'],
+        paper_bgcolor=COLOURS['background'],
+        font=dict(family="Arial", colour=COLOURS['text_primary']),
         annotations=[
             dict(
                 text="Created by Nqobile M",
                 xref="paper", yref="paper",
                 x=0.5, y=-0.05,
                 showarrow=False,
-                font=dict(size=12, color=COLORS['text_secondary']),
+                font=dict(size=12, colour=COLOURS['text_secondary']),
                 xanchor='center'
             )
         ]
     )
     
-    fig.update_xaxes(gridcolor=COLORS['gridlines'], title_font=dict(size=14, family="Arial Black"))
-    fig.update_yaxes(gridcolor=COLORS['gridlines'], title_font=dict(size=14, family="Arial Black"))
+    fig.update_xaxes(gridcolor=COLOURS['gridlines'], title_font=dict(size=14, family="Arial Black"))
+    fig.update_yaxes(gridcolor=COLOURS['gridlines'], title_font=dict(size=14, family="Arial Black"))
     
     return fig
 
@@ -566,7 +566,7 @@ if __name__ == "__main__":
     print("✨ DASHBOARD COMPLETE! ✨")
     print("="*70)
     print("\n🎨 Features:")
-    print("  • Vibrant Gen Z color palette")
+    print("  • Vibrant Gen Z colour palette")
     print("  • No Plotly watermark")
     print("  • Custom footer with your name")
     print("  • Interactive hover & zoom")
