@@ -168,7 +168,7 @@ def create_tab1_enhanced():
         values=[stroke_dist[0], stroke_dist[1]],
         hole=0.6,
         marker=dict(
-            COLORS=[COLORS['neon_purple'], COLORS['hot_pink']],
+            colors=[COLORS['neon_purple'], COLORS['hot_pink']],
             line=dict(color='white', width=3)
         ),
         textinfo='label+percent',
