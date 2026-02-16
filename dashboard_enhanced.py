@@ -409,9 +409,9 @@ def create_tab3_enhanced():
             [{"type": "bar", "colspan": 2}, None],
             [{"type": "bar"}, {"type": "table"}]
         ],
-        subplot_titles=("Top Risk Factor Combinations",
-                       "Risk Score Distribution",
-                       "High-Risk Patients (Score ≥ 10)"),
+        subplot_titles=("Top Risk Factor Combinations (Higher % = More Dangerous)",
+                       "Risk Score Distribution (0-20 scale, Most patients = 6-8)",
+                       "High-Risk Patients Needing Screening (Score ≥ 10 out of 20)"),
         vertical_spacing=0.15,
         horizontal_spacing=0.12
     )
