@@ -307,7 +307,7 @@ def create_tab2_enhanced():
     fig.add_annotation(
         text="💡 Stroke detection rate: Urban 5.2% vs Rural 4.5% (relative increase: 16%) → Access disparity",
         xref="paper", yref="paper",
-        x=0.5, y=0.48,
+        x=0.5, y=0.5,
         showarrow=False,
         font=dict(size=16, color=COLORS['hot_pink'], family="Arial Black"),
         bgcolor=COLORS['card_bg'],
@@ -445,6 +445,19 @@ def create_tab3_enhanced():
         textfont=dict(size=16, family="Arial Black"),
         hovertemplate="<b>%{x}</b><br>Rate: %{y:.1f}%<extra></extra>"
     ), row=1, col=1)
+
+    # Add acronym legend
+    fig.add_annotation(
+        text="<b>Abbreviations:</b> HTN = Hypertension, HD = Heart Disease",
+        xref="paper", yref="paper",
+        x=0.5, y=0.47,
+        showarrow=False,
+        font=dict(size=11, color=COLORS['text_secondary'], style='italic'),
+        bgcolor=COLORS['background'],
+        bordercolor=COLORS['gridlines'],
+        borderwidth=1,
+        borderpad=10
+    )
     
     # Risk distribution
     risk_dist = df['risk_score'].value_counts().sort_index()
