@@ -307,7 +307,7 @@ def create_tab2_enhanced():
     fig.add_annotation(
         text="💡 15% Higher Urban Detection → Rural Healthcare Access Gap",
         xref="paper", yref="paper",
-        x=0.5, y=0.35,
+        x=0.5, y=0.48,
         showarrow=False,
         font=dict(size=16, color=COLORS['hot_pink'], family="Arial Black"),
         bgcolor=COLORS['card_bg'],
