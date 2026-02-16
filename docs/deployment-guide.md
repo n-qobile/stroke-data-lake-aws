@@ -78,7 +78,7 @@ stroke-data-lake/
 
 ## Terraform Deployment
 
-### Step 3: Initialize Terraform
+### Step 3: Initialise Terraform
 
 Navigate to the Terraform directory:
 
@@ -89,12 +89,12 @@ terraform init
 
 **Expected output:**
 ```
-Initializing the backend...
-Initializing provider plugins...
+Initialising the backend...
+Initialising provider plugins...
 - Finding hashicorp/aws versions matching "~> 5.0"...
 - Installing hashicorp/aws v5.x.x...
 
-Terraform has been successfully initialized!
+Terraform has been successfully initialised!
 ```
 
 ### Step 4: Validate Configuration
@@ -182,7 +182,7 @@ upload: data\raw\healthcare-dataset-stroke-data.csv to s3://stroke-data-lake-raw
 aws s3 ls s3://stroke-data-lake-raw-data-056563840644/
 ```
 
-You should see your CSV file listed with date and size.
+You should see your CSV file listed with the date and size.
 
 ---
 
@@ -209,7 +209,7 @@ aws glue get-crawler --name stroke-data-lake-raw-crawler --query 'Crawler.State'
 - `RUNNING` - Still crawling
 - `READY` - Completed successfully
 
-Wait until status is `READY` (usually 1-2 minutes).
+Wait until the status is `READY` (usually 1-2 minutes).
 
 ### Step 11: Verify Table Creation
 
@@ -253,7 +253,7 @@ aws glue get-job-run --job-name stroke-data-lake-etl-job --run-id <YOUR_JOB_RUN_
 
 ### Step 14: Run Processed Data Crawler
 
-Once ETL job succeeds:
+Once the ETL job succeeds:
 
 ```powershell
 aws glue start-crawler --name stroke-data-lake-processed-crawler
@@ -289,7 +289,7 @@ start https://eu-north-1.console.aws.amazon.com/athena/home?region=eu-north-1
 
 ### Step 17: Configure Athena Workgroup
 
-1. In Athena console, click **Workgroups** in left menu
+1. In Athena console, click **Workgroups** in the left menu
 2. Select `stroke-data-lake-workgroup`
 3. Click **Switch workgroup**
 
@@ -370,7 +370,7 @@ aws sts get-caller-identity
 # Check region
 aws configure get region
 
-# If region is wrong, set it:
+# If the region is wrong, set it:
 aws configure set region eu-north-1
 ```
 
@@ -405,7 +405,7 @@ start https://eu-north-1.console.aws.amazon.com/cloudwatch/home?region=eu-north-
    ```powershell
    aws glue get-tables --database-name stroke_analytics_db
    ```
-3. Make sure you selected correct database in Athena UI
+3. Make sure you selected the correct database in Athena UI
 4. Try refreshing the table list in Athena console
 
 ### Issue: ETL job fails
@@ -426,15 +426,15 @@ start https://eu-north-1.console.aws.amazon.com/cloudwatch/home?region=eu-north-
 # Verify IAM roles were created
 aws iam list-roles | findstr stroke-data-lake
 
-# Check your user has necessary permissions
+# Check your user has the necessary permissions
 # You may need AmazonS3FullAccess, AWSGlueConsoleFullAccess, AmazonAthenaFullAccess
 ```
 
 ---
 
-## Cost Optimization
+## Cost Optimisation
 
-### Current Configuration (Already Optimized for Free Tier)
+### Current Configuration (Already Optimised for Free Tier)
 
 ✅ **S3 Storage:**
 - Versioning enabled (data protection)
@@ -452,7 +452,7 @@ aws iam list-roles | findstr stroke-data-lake
 ### Free Tier Limits (First 12 Months)
 
 - **S3:** 5 GB storage, 20,000 GET requests, 2,000 PUT requests
-- **Glue:** 1 million objects stored in Data Catalog
+- **Glue:** 1 million objects stored in Data Catalogue
 - **Athena:** First 10 GB of data scanned per month free (permanent, not just 12 months)
 
 ### Your Estimated Monthly Cost (After Free Tier)
@@ -509,7 +509,7 @@ Type `yes` when prompted.
 
 ### To Preserve Data but Stop Costs
 
-If you want to keep data but minimize costs:
+If you want to keep data but minimise costs:
 
 1. **Stop scheduled crawlers** (already done - manual only)
 2. **Delete CloudWatch logs:**
@@ -530,21 +530,21 @@ If you want to keep data but minimize costs:
 
 1. **Take screenshots of:**
    - S3 bucket structure
-   - Glue Data Catalog showing tables
+   - Glue Data Catalogue showing tables
    - Athena query results
    - CloudWatch logs showing job execution
 
 2. **Document:**
    - Architecture decisions (why Parquet? why manual crawlers?)
-   - Cost optimization strategies
+   - Cost optimisation strategies
    - Data governance approach
    - Challenges faced and solutions
 
 3. **Create architecture diagram** showing data flow:
    ```
-   Raw CSV → S3 Raw → Glue Crawler → Data Catalog
+   Raw CSV → S3 Raw → Glue Crawler → Data Catalogue
                 ↓
-   Glue ETL Job → S3 Processed → Glue Crawler → Data Catalog
+   Glue ETL Job → S3 Processed → Glue Crawler → Data Catalogue
                                        ↓
                                   Athena Queries → S3 Results
    ```
