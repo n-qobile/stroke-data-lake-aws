@@ -305,7 +305,7 @@ def create_tab2_enhanced():
     
     # Key insight annotation
     fig.add_annotation(
-        text="💡 15% Higher Urban Detection → Rural Healthcare Access Gap",
+        text="💡 Stroke detection rate: Urban 5.2% vs Rural 4.5% (relative increase: 16%) → Access disparity",
         xref="paper", yref="paper",
         x=0.5, y=0.48,
         showarrow=False,
