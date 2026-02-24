@@ -1,406 +1,437 @@
+
 """
-Stroke Risk Analytics Dashboard - ENHANCED VERSION
-===================================================
-Vibrant, interactive dashboard with Gen Z aesthetic
-Created by Nqobile M
-Speech Therapist & Cloud Data Engineer
+Stroke Risk Analytics Dashboard (Reliable Layout)
+===============================================
+- Single-page HTML with tabs
+- No overlapping annotations (insight + acronym rendered as HTML blocks, not Plotly annotations)
+- Keeps the same narrative wording used in your dashboard screenshots
 """
 
+from __future__ import annotations
+
+import os
+from pathlib import Path
 import pandas as pd
+import numpy as np
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-import plotly.express as px
 
-# ============================================================================
-# VIBRANT GEN Z COLOR PALETTE
-# ============================================================================
-
+# ---------------------------
+# Theme (warm + clinical)
+# ---------------------------
 COLORS = {
-    # Primary brand 
-    'stroke_purple': '#7C3AED',  
-    'neon_purple': '#A78BFA',
-    'hot_pink': '#EC4899',
-    'stroke_red': '#EF4444',
-    
-    # Neutrals
-    'background': '#F8FAFC',
-    'card_bg': '#FFFFFF',
-    'text_primary': '#1E293B',
-    'text_secondary': '#64748B',
-    'gridlines': '#E2E8F0',
-    
-    # Tab 2 - WHERE (More vibrant)
-    'electric_blue': '#3B82F6',
-    'cyan': '#06B6D4',
-    'lime_green': '#84CC16',
-    'teal': '#14B8A6',
-    
-    # Tab 3 - WHY (Warmer, bolder)
-    'vivid_orange': '#F97316',
-    'amber': '#F59E0B',
-    'yellow': '#FDE047',
-    
-    # Gradients
-    'purple_gradient': ['#A78BFA', '#7C3AED', '#EC4899', '#EF4444'],
-    'blue_gradient': ['#3B82F6', '#06B6D4', '#14B8A6'],
-    'orange_gradient': ['#FDE047', '#F59E0B', '#F97316', '#EF4444'],
-    'risk_gradient': ['#84CC16', '#FDE047', '#F97316', '#EF4444']
+    "base_purple": "#6F2DBD",   # stroke awareness / base
+    "stroke_red":  "#D32F2F",   # ribbon + emphasis
+    "orange":      "#F57C00",   # what/verb
+    "yellow":      "#FBC02D",
+    "green":       "#7CB342",
+    "blue":        "#1976D2",
+    "brown":       "#6D4C41",
+    "pink_soft":   "#F8BBD0",   # soft accent only (NOT hot pink)
+    "bg":          "#F6F7FB",
+    "card":        "#FFFFFF",
+    "grid":        "#E6E8F0",
+    "text":        "#202124",
+    "muted":       "#5F6368",
 }
 
-# ============================================================================
-# LOAD DATA
-# ============================================================================
+RIBBON_SVG = f"""
+<svg width="20" height="20" viewBox="0 0 64 64" aria-hidden="true" style="vertical-align:-3px;">
+  <path fill="{COLORS['stroke_red']}" d="M42.8 8c-6.2 0-10.8 4.6-10.8 10.2v5.1c0 3.7-3 6.7-6.7 6.7H18c-5.6 0-10.2 4.6-10.2 10.8S12.4 52 18 52h14.9l10.5 12V52h6.6c5.6 0 10.2-4.6 10.2-10.2S55.6 32 50 32h-6.5c-3.7 0-6.7-3-6.7-6.7v-7.1C36.8 12.6 38.6 8 42.8 8zm-6 43.7L30.6 44H18c-2.2 0-4-1.8-4-4.2S15.8 36 18 36h7.3c5.9 0 10.7-4.8 10.7-10.7v-5.1c0-3 2.2-5.8 6.8-5.8 3 0 4.2 2.9 4.2 3.8v7.1c0 5.9 4.8 10.7 10.7 10.7H50c2.2 0 4 1.8 4 4.1S52.2 44 50 44h-9.2v7.7z"/>
+</svg>
+"""
 
-print("🎨 Loading stroke data for enhanced dashboard...")
-df = pd.read_csv('data/stroke_data_full.csv')
-print(f"✓ Loaded {len(df):,} patient records")
-print(f"✓ Columns: {', '.join(df.columns[:8])}...")
+# ---------------------------
+# Data loading
+# ---------------------------
+def load_data() -> pd.DataFrame:
+    # Explicit path to your processed dataset
+    # (You said: data/stroke_data_full.csv)
+    primary = Path("data") / "stroke_data_full.csv"
+    if primary.exists():
+        return pd.read_csv(primary)
 
-# ============================================================================
-# HELPER: ADD FILTERS TO LAYOUT
-# ============================================================================
+    # Fallbacks (in case you rename later)
+    candidates = [
+        "stroke_data_enhanced.csv",
+        "stroke_data_processed.csv",
+        "stroke_data.csv",
+        "stroke.csv",
+        "data/stroke_data_enhanced.csv",
+        "data/stroke_data_processed.csv",
+        "data/stroke.csv",
+    ]
+    for c in candidates:
+        p = Path(c)
+        if p.exists():
+            return pd.read_csv(p)
 
-def add_filter_buttons(fig):
-    """Add dropdown filters to dashboard"""
+    # Last resort: first CSV in the project folder
+    csvs = list(Path(".").glob("*.csv"))
+    if not csvs:
+        raise FileNotFoundError(
+            "No CSV file found. Put your exported CSV in data/stroke_data_full.csv "
+            "(or place a CSV in this folder)."
+        )
+    return pd.read_csv(csvs[0])
+
+def normalise_columns(df: pd.DataFrame) -> pd.DataFrame:
+    # Make columns consistent (your dataset uses residence_type etc.)
+    rename = {}
+    for col in df.columns:
+        lc = col.lower()
+        if lc == "residence_type":
+            rename[col] = "Residence_type"
+        if lc == "ever_married":
+            rename[col] = "ever_married"
+        if lc == "avg_glucose_level":
+            rename[col] = "avg_glucose_level"
+        if lc == "heart_disease":
+            rename[col] = "heart_disease"
+        if lc == "hypertension":
+            rename[col] = "hypertension"
+        if lc == "smoking_status":
+            rename[col] = "smoking_status"
+        if lc == "risk_score":
+            rename[col] = "risk_score"
+        if lc == "age_group":
+            rename[col] = "age_group"
+        if lc == "bmi_category":
+            rename[col] = "bmi_category"
+        if lc == "glucose_category":
+            rename[col] = "glucose_category"
+        if lc == "stroke":
+            rename[col] = "stroke"
+        if lc == "age":
+            rename[col] = "age"
+        if lc == "gender":
+            rename[col] = "gender"
+        if lc == "bmi":
+            rename[col] = "bmi"
+        if lc == "id":
+            rename[col] = "id"
+        if lc == "work_type":
+            rename[col] = "work_type"
+    df = df.rename(columns=rename)
+    return df
+
+# ---------------------------
+# Tab 1 (Overview) - keep simple and stable
+# ---------------------------
+def build_tab1(df: pd.DataFrame) -> str:
+    """Tab 1 with KPIs, donut, age bars, gender, insights table"""
+    from plotly.subplots import make_subplots
     
-    # Age group filter
-    age_groups = ['All Ages'] + sorted(df['age_group'].unique().tolist())
-    
-    fig.update_layout(
-        updatemenus=[
-            dict(
-                buttons=[
-                    dict(label="All Age Groups",
-                         method="relayout",
-                         args=[{"title.text": "Filtered: All Ages"}]),
-                    dict(label="18-29",
-                         method="relayout",
-                         args=[{"title.text": "Filtered: Ages 18-29"}]),
-                    dict(label="30-44",
-                         method="relayout",
-                         args=[{"title.text": "Filtered: Ages 30-44"}]),
-                    dict(label="45-59",
-                         method="relayout",
-                         args=[{"title.text": "Filtered: Ages 45-59"}]),
-                    dict(label="60-74",
-                         method="relayout",
-                         args=[{"title.text": "Filtered: Ages 60-74"}]),
-                    dict(label="75+",
-                         method="relayout",
-                         args=[{"title.text": "Filtered: Ages 75+"}]),
-                ],
-                direction="down",
-                pad={"r": 10, "t": 10},
-                showactive=True,
-                x=0.01,
-                xanchor="left",
-                y=1.15,
-                yanchor="top",
-                bgcolor=COLORS['card_bg'],
-                bordercolor=COLORS['stroke_purple'],
-                borderwidth=2,
-                font=dict(size=12, color=COLORS['text_primary'])
-            ),
-        ]
-    )
-
-# ============================================================================
-# TAB 1: "WHAT?" - EXECUTIVE OVERVIEW (ENHANCED)
-# ============================================================================
-
-def create_tab1_enhanced():
-    """Create Tab 1 with vibrant colors and better design"""
+    total = len(df)
+    stroke_cases = int((df.get("stroke", pd.Series([0])) == 1).sum())
+    avg_age = float(df.get("age", pd.Series([0])).mean())
+    avg_risk = float(df.get("risk_score", pd.Series([0])).mean())
     
     fig = make_subplots(
         rows=3, cols=4,
-        row_heights=[0.15, 0.4, 0.45],
-        column_widths=[0.25, 0.25, 0.25, 0.25],
+        row_heights=[0.25, 0.4, 0.35],
         specs=[
             [{"type": "indicator"}, {"type": "indicator"}, {"type": "indicator"}, {"type": "indicator"}],
-            [{"type": "pie", "colspan": 2}, None, {"type": "bar", "colspan": 2}, None],
+            [{"type": "pie"}, {"type": "bar", "colspan": 2}, None, {"type": "bar"}],
             [{"type": "table", "colspan": 4}, None, None, None]
         ],
         subplot_titles=("", "", "", "", 
-                       "Stroke Distribution", "Stroke Cases by Age Group"),
-        vertical_spacing=0.12,
-        horizontal_spacing=0.08
+                       "Stroke Distribution", "Age Group Distribution", "", "Gender Distribution",
+                       "")
     )
     
-    # KPI 1: Total Patients 
+    # KPIs
     fig.add_trace(go.Indicator(
-        mode="number",
-        value=len(df),
-        title={"text": "Total Patients", "font": {"size": 18, "color": COLORS['text_primary'], "family": "Arial Black"}},
-        number={"font": {"size": 48, "color": COLORS['stroke_purple'], "family": "Arial Black"}},
+        mode="number", value=total,
+        title={"text": "Total Patients", "font": {"size": 16}},
+        number={"font": {"size": 38, "color": COLORS["base_purple"]}},
     ), row=1, col=1)
     
-    # KPI 2: Stroke Cases (HOT PINK/RED!)
-    stroke_cases = df['stroke'].sum()
     fig.add_trace(go.Indicator(
-        mode="number",
-        value=stroke_cases,
-        title={"text": "Stroke Cases 🎗️", "font": {"size": 18, "color": COLORS['text_primary'], "family": "Arial Black"}},
-        number={"font": {"size": 48, "color": COLORS['hot_pink'], "family": "Arial Black"}},
+        mode="number", value=stroke_cases,
+        title={"text": "Stroke Cases", "font": {"size": 16}},
+        number={"font": {"size": 38, "color": COLORS["stroke_red"]}},
     ), row=1, col=2)
     
-    # KPI 3: Stroke Rate (Electric styling)
-    stroke_rate = (df['stroke'].mean() * 100)
     fig.add_trace(go.Indicator(
-        mode="number",
-        value=stroke_rate,
-        title={"text": "Stroke Rate", "font": {"size": 18, "color": COLORS['text_primary'], "family": "Arial Black"}},
-        number={"suffix": "%", "font": {"size": 48, "color": COLORS['neon_purple'], "family": "Arial Black"}},
+        mode="number", value=avg_age,
+        title={"text": "Avg Age", "font": {"size": 16}},
+        number={"font": {"size": 38, "color": COLORS["blue"]}},
+        number_suffix=" yrs"
     ), row=1, col=3)
     
-    # KPI 4: Avg Risk Score
-    avg_risk = df['risk_score'].mean()
     fig.add_trace(go.Indicator(
-        mode="number",
-        value=avg_risk,
-        title={"text": "Avg Risk Score", "font": {"size": 18, "color": COLORS['text_primary'], "family": "Arial Black"}},
-        number={"font": {"size": 48, "color": COLORS['vivid_orange'], "family": "Arial Black"}},
+        mode="number", value=avg_risk,
+        title={"text": "Avg Risk Score", "font": {"size": 16}},
+        number={"font": {"size": 38, "color": COLORS["orange"]}},
     ), row=1, col=4)
     
-    # Donut Chart - VIBRANT GRADIENT
-    stroke_dist = df['stroke'].value_counts()
+    # Donut
+    stroke_dist = df["stroke"].value_counts()
     fig.add_trace(go.Pie(
-        labels=['No Stroke', 'Stroke'],
-        values=[stroke_dist[0], stroke_dist[1]],
+        labels=["No Stroke", "Stroke"],
+        values=[stroke_dist.get(0, 0), stroke_dist.get(1, 0)],
         hole=0.6,
-        marker=dict(
-            colors=[COLORS['neon_purple'], COLORS['hot_pink']],
-            line=dict(color='white', width=3)
-        ),
-        textinfo='label+percent',
-        textfont=dict(size=16, family="Arial Black"),
-        hovertemplate="<b>%{label}</b><br>Count: %{value}<br>%{percent}<extra></extra>",
+        marker=dict(colors=["#A78BFA", COLORS["stroke_red"]], line=dict(color="white", width=2)),
+        textinfo="label+percent",
         pull=[0, 0.1]
     ), row=2, col=1)
     
-    # Bar Chart - VIBRANT GRADIENT
-    age_analysis = df.groupby('age_group')['stroke'].agg(['sum', 'count']).reset_index()
-    age_analysis.columns = ['age_group', 'stroke_count', 'total']
-    age_order = ['18-29', '30-44', '45-59', '60-74', '75+']
-    age_analysis['age_group'] = pd.Categorical(age_analysis['age_group'], categories=age_order, ordered=True)
-    age_analysis = age_analysis.sort_values('age_group')
+    # Age groups
+    if "age_group" in df.columns:
+        age_data = df.groupby("age_group")["stroke"].agg(["count", "sum"]).reset_index()
+        age_data.columns = ["age_group", "total", "stroke"]
+        age_order = ["18-29", "30-44", "45-59", "60-74", "75+"]
+        age_data["age_group"] = pd.Categorical(age_data["age_group"], categories=age_order, ordered=True)
+        age_data = age_data.sort_values("age_group")
+        
+        fig.add_trace(go.Bar(
+            name="No Stroke",
+            x=age_data["age_group"],
+            y=age_data["total"] - age_data["stroke"],
+            marker=dict(color="#A78BFA")
+        ), row=2, col=2)
+        
+        fig.add_trace(go.Bar(
+            name="Stroke",
+            x=age_data["age_group"],
+            y=age_data["stroke"],
+            marker=dict(color=COLORS["stroke_red"])
+        ), row=2, col=2)
     
-    fig.add_trace(go.Bar(
-        x=age_analysis['age_group'],
-        y=age_analysis['stroke_count'],
-        marker=dict(
-            color=age_analysis['stroke_count'],
-            colorscale=[[0, COLORS['neon_purple']], [0.5, COLORS['vivid_orange']], [1, COLORS['hot_pink']]],
-            showscale=False,
-            line=dict(color='white', width=2)
-        ),
-        text=age_analysis['stroke_count'],
-        textposition='outside',
-        textfont=dict(size=16, family="Arial Black", color=COLORS['text_primary']),
-        hovertemplate="<b>%{x}</b><br>Stroke Cases: %{y}<br><extra></extra>"
-    ), row=2, col=3)
+    # Gender
+    if "gender" in df.columns:
+        gender_stroke = df[df["stroke"] == 1].groupby("gender").size()
+        fig.add_trace(go.Bar(
+            x=gender_stroke.index,
+            y=gender_stroke.values,
+            marker=dict(color=[COLORS["blue"], COLORS["orange"]]),
+            text=gender_stroke.values,
+            textposition="outside"
+        ), row=2, col=4)
     
-    # Insights Table - VIBRANT HEADERS
+    # Insights table
     insights_data = [
-        ["🎯 Finding", "Data", "Impact"],
-        ["Urban Detection", "+15% vs Rural", "Access Gap"],
-        ["Peak Risk Age", "75+ (43 cases)", "Target Services"],
-        ["Key Driver", "Comorbidities", "Medical Focus"],
-        ["Therapy Need", f"{int(stroke_cases * 0.7)} patients", "70% Require SLP"]
+        ["Finding", "Data", "Impact"],
+        ["Urban vs Rural", "5.2% vs 4.5%", "Access Gap"],
+        ["Peak Risk Age", "75+ group", "Target Services"],
+        ["Avg Risk Score", f"{avg_risk:.1f} / 20", "Moderate Risk"],
+        ["Therapy Need", f"{int(stroke_cases * 0.7)} patients", "70% SLP"]
     ]
     
     fig.add_trace(go.Table(
         header=dict(
             values=["<b>" + h + "</b>" for h in insights_data[0]],
-            fill_color=COLORS['stroke_purple'],
-            font=dict(color='white', size=15, family="Arial Black"),
-            align='left',
-            height=40
+            fill_color=COLORS["base_purple"],
+            font=dict(color="white", size=13),
+            align="left"
         ),
         cells=dict(
             values=list(zip(*insights_data[1:])),
-            fill_color=[COLORS['card_bg'], COLORS['background']],
-            font=dict(color=COLORS['text_primary'], size=13),
-            align='left',
-            height=35
+            fill_color=[COLORS["card"], COLORS["bg"]],
+            font=dict(size=11),
+            align="left"
         )
     ), row=3, col=1)
     
-    # Layout with vibrant styling
     fig.update_layout(
-        title={
-            'text': "🎗️ Stroke Risk Analytics - Executive Overview",
-            'font': {'size': 28, 'color': COLORS['stroke_purple'], 'family': 'Arial Black'},
-            'x': 0.5,
-            'xanchor': 'center',
-            'y': 0.98
-        },
-        showlegend=False,
-        height=1000,
-        plot_bgcolor=COLORS['background'],
-        paper_bgcolor=COLORS['background'],
-        font=dict(family="Arial", color=COLORS['text_primary']),
-        annotations=[
-            dict(
-                text="Created by Nqobile M | Speech Therapist & Cloud Data Engineer",
-                xref="paper", yref="paper",
-                x=0.5, y=-0.05,
-                showarrow=False,
-                font=dict(size=12, color=COLORS['text_secondary']),
-                xanchor='center'
-            )
-        ]
+        height=950,
+        showlegend=True,
+        paper_bgcolor=COLORS["bg"],
+        plot_bgcolor=COLORS["card"],
+        font=dict(color=COLORS["text"]),
+        barmode="stack",
+        margin=dict(l=40, r=40, t=60, b=40)
     )
     
-    fig.update_xaxes(title_text="Age Group", row=2, col=3, gridcolor=COLORS['gridlines'], 
-                     title_font=dict(size=14, family="Arial Black"))
-    fig.update_yaxes(title_text="Stroke Cases", row=2, col=3, gridcolor=COLORS['gridlines'],
-                     title_font=dict(size=14, family="Arial Black"))
+    chart_html = fig.to_html(full_html=False, include_plotlyjs="cdn", config={"displayModeBar": True, "displaylogo": False})
     
-    return fig
+    html_out = f"""
+    <div class="tab-inner">
+      <h2 class="tab-title" style="color:{COLORS['base_purple']}">WHAT? (Overview)</h2>
+      <div class="card">
+        {chart_html}
+      </div>
+    </div>
+    """
+    return html_out
 
-# ============================================================================
-# TAB 2: "WHERE?" - GEOGRAPHIC (VIBRANT BLUES/GREENS)
-# ============================================================================
+# ---------------------------
+# Tab 2 (Where) - NO OVERLAP
+    if "age" in df.columns:
+        ages = df["age"].dropna().astype(float)
+    else:
+        ages = pd.Series([], dtype=float)
 
-def create_tab2_enhanced():
-    """Tab 2 with electric blues and vibrant greens"""
-    
+    fig = go.Figure()
+    fig.add_trace(go.Histogram(x=ages, nbinsx=20, name="Age"))
+    fig.update_layout(
+        title="Age Distribution",
+        paper_bgcolor=COLORS["bg"],
+        plot_bgcolor=COLORS["card"],
+        margin=dict(l=20, r=20, t=60, b=20),
+        height=420,
+        font=dict(color=COLORS["text"]),
+        xaxis=dict(gridcolor=COLORS["grid"]),
+        yaxis=dict(gridcolor=COLORS["grid"]),
+    )
+    chart_html = fig.to_html(full_html=False, include_plotlyjs='inline')
+
+    return f"""
+    <div class="tab-inner">
+      <h2 class="tab-title" style="color:{COLORS['base_purple']}">WHAT? (Overview)</h2>
+      {kpi}
+      <div class="card">
+        {chart_html}
+      </div>
+    </div>
+    """
+
+# ---------------------------
+# Tab 2 (Where) - NO OVERLAP
+# Insight is HTML block (not annotation)
+# Speech therapy is a card placed right under the bottom charts
+# ---------------------------
+def build_tab2(df: pd.DataFrame) -> str:
+    if "Residence_type" not in df.columns and "residence_type" in df.columns:
+        df = df.rename(columns={"residence_type": "Residence_type"})
+
+    # Rates
+    if "stroke" in df.columns and "Residence_type" in df.columns:
+        rate = df.groupby("Residence_type")["stroke"].mean() * 100
+        urban_rate = float(rate.get("Urban", np.nan))
+        rural_rate = float(rate.get("Rural", np.nan))
+    else:
+        urban_rate = rural_rate = float("nan")
+
+    # Build charts in a subplot with generous spacing
     fig = make_subplots(
         rows=2, cols=2,
-        row_heights=[0.5, 0.5],
-        specs=[
-            [{"type": "bar", "colspan": 2}, None],
-            [{"type": "bar"}, {"type": "scatter"}]
-        ],
-        subplot_titles=("🌟 Urban vs Rural Stroke Detection - KEY FINDING!",
-                       "Stroke Distribution by Location & Age",
-                       "Age vs Risk Score by Location"),
-        vertical_spacing=0.15,
+        row_heights=[0.56, 0.44],
+        specs=[[{"type": "bar", "colspan": 2}, None],
+               [{"type": "bar"}, {"type": "scatter"}]],
+        subplot_titles=(
+            "🌟 Urban vs Rural Stroke Detection - KEY FINDING!",
+            "Stroke Distribution by Location & Age",
+            "Age vs Risk Score by Location"
+        ),
+        vertical_spacing=0.18,
         horizontal_spacing=0.12
     )
-    
-    # Main Chart - ELECTRIC COLORS
-    residence_analysis = df.groupby('residence_type').agg({
-        'stroke': ['sum', 'count', 'mean']
-    }).reset_index()
-    residence_analysis.columns = ['residence', 'stroke_cases', 'total', 'stroke_rate']
-    residence_analysis['stroke_rate_pct'] = residence_analysis['stroke_rate'] * 100
-    
+
+    # Top chart: Urban vs Rural counts and % (stable)
+    if "Residence_type" in df.columns and "stroke" in df.columns:
+        counts = df[df["stroke"] == 1].groupby("Residence_type").size()
+        # Fallback counts for overall if stroke==1 not desired; keep as you showed.
+        rural_c = int(counts.get("Rural", 0))
+        urban_c = int(counts.get("Urban", 0))
+    else:
+        rural_c = urban_c = 0
+
     fig.add_trace(go.Bar(
-        x=residence_analysis['residence'],
-        y=residence_analysis['stroke_cases'],
-        marker=dict(
-            color=[COLORS['electric_blue'], COLORS['lime_green']],
-            line=dict(color='white', width=3)
-        ),
-        text=[f"<b>{cases}</b><br>{rate:.1f}%" 
-              for cases, rate in zip(residence_analysis['stroke_cases'], 
-                                    residence_analysis['stroke_rate_pct'])],
-        textposition='outside',
-        textfont=dict(size=18, family="Arial Black", color=COLORS['text_primary']),
-        hovertemplate="<b>%{x}</b><br>Stroke Cases: %{y}<br><extra></extra>",
-        showlegend=False,
-        width=0.6
+        x=["Rural", "Urban"],
+        y=[rural_c, urban_c],
+        marker_color=[COLORS["green"], COLORS["blue"]],
+        text=[f"{rural_c}<br>{rural_rate:.1f}%" if not np.isnan(rural_rate) else f"{rural_c}",
+              f"{urban_c}<br>{urban_rate:.1f}%" if not np.isnan(urban_rate) else f"{urban_c}"],
+        textposition="outside",
+        name="Stroke cases"
     ), row=1, col=1)
-    
-    # Key insight annotation
-    fig.add_annotation(
-        text="💡 Stroke detection rate: Urban 5.2% vs Rural 4.5% (relative increase: 16%) → Access disparity",
-        xref="paper", yref="paper",
-        x=0.5, y=0.5,
-        showarrow=False,
-        font=dict(size=16, color=COLORS['hot_pink'], family="Arial Black"),
-        bgcolor=COLORS['card_bg'],
-        bordercolor=COLORS['electric_blue'],
-        borderwidth=3,
-        borderpad=15
-    )
-    
-    # Grouped bars
-    age_residence = df.groupby(['residence_type', 'age_group'])['stroke'].sum().reset_index()
-    age_order = ['18-29', '30-44', '45-59', '60-74', '75+']
-    
-    for residence in ['Urban', 'Rural']:
-        data = age_residence[age_residence['residence_type'] == residence]
-        data['age_group'] = pd.Categorical(data['age_group'], categories=age_order, ordered=True)
-        data = data.sort_values('age_group')
-        
-        color = COLORS['electric_blue'] if residence == 'Urban' else COLORS['lime_green']
-        
-        fig.add_trace(go.Bar(
-            name=residence,
-            x=data['age_group'],
-            y=data['stroke'],
-            marker=dict(color=color, line=dict(color='white', width=2)),
-            hovertemplate="<b>%{x} - " + residence + "</b><br>Cases: %{y}<extra></extra>"
-        ), row=2, col=1)
-    
-    # Scatter plot
-    for residence in ['Urban', 'Rural']:
-        data = df[df['residence_type'] == residence]
-        stroke_data = data[data['stroke'] == 1]
-        
-        color = COLORS['electric_blue'] if residence == 'Urban' else COLORS['lime_green']
-        
-        fig.add_trace(go.Scatter(
-            name=residence,
-            x=stroke_data['age'],
-            y=stroke_data['risk_score'],
-            mode='markers',
-            marker=dict(
-                size=10,
-                color=color,
-                opacity=0.7,
-                line=dict(width=2, color='white')
-            ),
-            hovertemplate="<b>" + residence + "</b><br>Age: %{x}<br>Risk: %{y}<extra></extra>"
-        ), row=2, col=2)
-    
+
+    # Bottom left: strokes by age_group and residence
+    if "age_group" in df.columns and "Residence_type" in df.columns and "stroke" in df.columns:
+        sub = df[df["stroke"] == 1].groupby(["age_group", "Residence_type"]).size().unstack(fill_value=0)
+        age_order = ["18-29", "30-44", "45-59", "60-74", "75+"]
+        sub = sub.reindex(age_order).fillna(0)
+        for res, col in [("Rural", COLORS["green"]), ("Urban", COLORS["blue"])]:
+            if res in sub.columns:
+                fig.add_trace(go.Bar(x=sub.index, y=sub[res], name=res, marker_color=col), row=2, col=1)
+    fig.update_xaxes(title_text="", row=2, col=1)
+
+    # Bottom right: age vs risk scatter coloured by residence
+    if "age" in df.columns and "risk_score" in df.columns and "Residence_type" in df.columns:
+        for res, col in [("Rural", COLORS["green"]), ("Urban", COLORS["blue"])]:
+            d = df[df["Residence_type"] == res]
+            fig.add_trace(go.Scatter(
+                x=d["age"], y=d["risk_score"], mode="markers",
+                marker=dict(size=7, color=col, opacity=0.7),
+                name=res
+            ), row=2, col=2)
+
     fig.update_layout(
-        title={
-            'text': "🗺️ Geographic Analysis - Healthcare Access Disparities",
-            'font': {'size': 28, 'color': COLORS['electric_blue'], 'family': 'Arial Black'},
-            'x': 0.5,
-            'xanchor': 'center'
-        },
-        height=900,
-        plot_bgcolor=COLORS['background'],
-        paper_bgcolor=COLORS['background'],
-        font=dict(family="Arial", color=COLORS['text_primary']),
-        barmode='group',
-        showlegend=True,
-        legend=dict(
-            orientation="h",
-            yanchor="bottom",
-            y=1.02,
-            xanchor="right",
-            x=1,
-            font=dict(size=13, family="Arial Black"),
-            bgcolor=COLORS['card_bg'],
-            bordercolor=COLORS['electric_blue'],
-            borderwidth=2
-        ),
-        annotations=fig.layout.annotations + (dict(
-            text="Created by Nqobile M",
-            xref="paper", yref="paper",
-            x=0.5, y=-0.05,
-            showarrow=False,
-            font=dict(size=12, color=COLORS['text_secondary']),
-            xanchor='center'
-        ),)
+        paper_bgcolor=COLORS["bg"],
+        plot_bgcolor=COLORS["card"],
+        height=820,
+        margin=dict(l=20, r=20, t=90, b=20),
+        font=dict(color=COLORS["text"]),
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, x=1.0, xanchor="right"),
     )
-    
-    fig.update_xaxes(gridcolor=COLORS['gridlines'], title_font=dict(size=14, family="Arial Black"))
-    fig.update_yaxes(gridcolor=COLORS['gridlines'], title_font=dict(size=14, family="Arial Black"))
-    
-    return fig
+    fig.update_xaxes(gridcolor=COLORS["grid"])
+    fig.update_yaxes(gridcolor=COLORS["grid"])
 
-# ============================================================================
-# TAB 3: "WHY?" - RISK FACTORS (VIBRANT ORANGES)
-# ============================================================================
+    chart_html = fig.to_html(full_html=False, include_plotlyjs=False)
 
-def create_tab3_enhanced():
-    """Tab 3 with vivid oranges and warm gradients"""
+    # Insight text as HTML (never overlaps charts)
+    if not np.isnan(urban_rate) and not np.isnan(rural_rate) and rural_rate > 0:
+        rel_inc = (urban_rate - rural_rate) / rural_rate * 100
+        insight = f"💡 <b>Stroke detection rate:</b> Urban {urban_rate:.1f}% vs Rural {rural_rate:.1f}% (relative increase: {rel_inc:.0f}%) → Access disparity"
+    else:
+        insight = "💡 <b>Stroke detection rate:</b> Urban vs Rural → Access disparity"
+
+    insight_box = f"""
+    <div class="insight-strip">
+      {insight}
+    </div>
+    """
+
+    # Speech therapy card (kept wording, computed numbers)
+    stroke_cases_total = int((df.get("stroke") == 1).sum()) if "stroke" in df.columns else 0
+    # Keep your 70% assumption for service demand
+    slp_patients = int(round(stroke_cases_total * 0.70))
+    sessions = int(round(slp_patients * 12))
+
+    speech_card = f"""
+    <div class="card speech-card">
+      <div class="card-title">🗣️ <span>Speech Therapy Resource Planning</span></div>
+
+      <div class="card-section">
+        <div class="card-subtitle">Estimated SLP Service Demand:</div>
+        <ul>
+          <li><b>{slp_patients}</b> patients require speech therapy (70% of {stroke_cases_total} stroke cases)</li>
+        </ul>
+      </div>
+
+      <div class="card-section">
+        <div class="card-subtitle">Session Requirements:</div>
+        <ul>
+          <li>Approximately <b>{sessions:,}</b> therapy sessions needed (12 sessions per patient average)</li>
+        </ul>
+      </div>
+    </div>
+    """
+
+    return f"""
+    <div class="tab-inner">
+      <h2 class="tab-title" style="color:{COLORS['blue']}">WHERE? (Geography)</h2>
+      {insight_box}
+      <div class="card">{chart_html}</div>
+      {speech_card}
+    </div>
+    """
+
+# ---------------------------
+# Tab 3 (Why) - acronym index ALWAYS visible
+# Put acronym as HTML banner above plots
+# ---------------------------
+def build_tab3(df: pd.DataFrame) -> str:
+    acronym_banner = """
+    <div class="acronym-banner">
+      <b>📖 ABBREVIATIONS:</b> HTN = Hypertension &nbsp;&nbsp;•&nbsp;&nbsp; HD = Heart Disease
+    </div>
+    """
+
+    # Build subplot with risk combinations at top
+    from plotly.subplots import make_subplots
     
     fig = make_subplots(
         rows=2, cols=2,
@@ -410,183 +441,329 @@ def create_tab3_enhanced():
             [{"type": "bar"}, {"type": "table"}]
         ],
         subplot_titles=("Top Risk Factor Combinations (Higher % = More Dangerous)",
-                       "Risk Score Distribution (0-20 scale, Most patients = 6-8)",
-                       "High-Risk Patients Needing Screening (Score ≥ 10 out of 20)"),
-        vertical_spacing=0.15,
-        horizontal_spacing=0.12
+                       "Risk Score Distribution (0-20 scale)",
+                       "High-Risk Patients (Score ≥ 10)"),
+        vertical_spacing=0.20
     )
     
-    # Risk combos
-    risk_combos = df.groupby(['hypertension', 'heart_disease', 'smoking_status']).agg({
-        'stroke': ['sum', 'count', 'mean']
-    }).reset_index()
-    risk_combos.columns = ['hypertension', 'heart_disease', 'smoking', 'stroke_cases', 'total', 'stroke_rate']
-    risk_combos = risk_combos[risk_combos['total'] > 10].sort_values('stroke_rate', ascending=False).head(10)
-    
-    risk_combos['label'] = risk_combos.apply(lambda row: 
-        f"{'HTN+' if row['hypertension'] == 1 else ''}"
-        f"{'HD+' if row['heart_disease'] == 1 else ''}"
-        f"{row['smoking'] if row['smoking'] != 'Unknown' else ''}".rstrip('+'),
-        axis=1
-    )
-    risk_combos['stroke_rate_pct'] = risk_combos['stroke_rate'] * 100
-    
-    fig.add_trace(go.Bar(
-        x=risk_combos['label'],
-        y=risk_combos['stroke_rate_pct'],
-        marker=dict(
-            color=risk_combos['stroke_rate_pct'],
-            colorscale=[[0, COLORS['amber']], [0.5, COLORS['vivid_orange']], [1, COLORS['hot_pink']]],
-            showscale=False,
-            line=dict(color='white', width=2)
-        ),
-        text=[f"<b>{rate:.1f}%</b>" for rate in risk_combos['stroke_rate_pct']],
-        textposition='outside',
-        textfont=dict(size=16, family="Arial Black"),
-        hovertemplate="<b>%{x}</b><br>Rate: %{y:.1f}%<extra></extra>"
-    ), row=1, col=1)
-
-    # Add acronym legend
-    fig.add_annotation(
-        text="<b>Abbreviations:</b> HTN = Hypertension, HD = Heart Disease",
-        xref="paper", yref="paper",
-        x=0.5, y=0.47,
-        showarrow=False,
-        font=dict(size=11, color=COLORS['text_secondary'], style='italic'),
-        bgcolor=COLORS['background'],
-        bordercolor=COLORS['gridlines'],
-        borderwidth=1,
-        borderpad=10
-    )
+    # Risk combinations
+    if all(col in df.columns for col in ["hypertension", "heart_disease", "smoking_status", "stroke"]):
+        risk_combos = df.groupby(["hypertension", "heart_disease", "smoking_status"]).agg({
+            "stroke": ["sum", "count", "mean"]
+        }).reset_index()
+        risk_combos.columns = ["hypertension", "heart_disease", "smoking", "stroke_cases", "total", "stroke_rate"]
+        risk_combos = risk_combos[risk_combos["total"] > 10].sort_values("stroke_rate", ascending=False).head(10)
+        
+        risk_combos["label"] = risk_combos.apply(lambda row: 
+            f"{'HTN+' if row['hypertension'] == 1 else ''}"
+            f"{'HD+' if row['heart_disease'] == 1 else ''}"
+            f"{row['smoking'] if row['smoking'] != 'Unknown' else ''}".rstrip('+'),
+            axis=1
+        )
+        risk_combos["stroke_rate_pct"] = risk_combos["stroke_rate"] * 100
+        
+        fig.add_trace(go.Bar(
+            x=risk_combos["label"],
+            y=risk_combos["stroke_rate_pct"],
+            marker=dict(
+                color=risk_combos["stroke_rate_pct"],
+                colorscale=[[0, COLORS["orange"]], [0.5, "#D32F2F"], [1, "#6F2DBD"]],
+                showscale=False
+            ),
+            text=[f"<b>{rate:.1f}%</b>" for rate in risk_combos["stroke_rate_pct"]],
+            textposition="outside",
+            textfont=dict(size=14)
+        ), row=1, col=1)
     
     # Risk distribution
-    risk_dist = df['risk_score'].value_counts().sort_index()
-    
-    fig.add_trace(go.Bar(
-        x=risk_dist.index,
-        y=risk_dist.values,
-        marker=dict(
-            color=risk_dist.index,
-            colorscale=[[0, COLORS['lime_green']], [0.3, COLORS['yellow']], 
-                       [0.6, COLORS['vivid_orange']], [1, COLORS['hot_pink']]],
-            showscale=False,
-            line=dict(color='white', width=2)
-        ),
-        text=risk_dist.values,
-        textposition='outside',
-        textfont=dict(size=14, family="Arial Black"),
-        hovertemplate="<b>Score: %{x}</b><br>Patients: %{y}<extra></extra>"
-    ), row=2, col=1)
+    if "risk_score" in df.columns:
+        risk_dist = df["risk_score"].value_counts().sort_index()
+        fig.add_trace(go.Bar(
+            x=risk_dist.index,
+            y=risk_dist.values,
+            marker=dict(
+                color=risk_dist.index,
+                colorscale=[[0, "#84CC16"], [0.5, COLORS["orange"]], [1, COLORS["stroke_red"]]],
+                showscale=False
+            ),
+            text=risk_dist.values,
+            textposition="outside"
+        ), row=2, col=1)
     
     # High-risk table
-    high_risk = df[df['risk_score'] >= 10].sort_values('risk_score', ascending=False).head(15)
-    
-    table_data = [
-        ["ID", "Age", "Gender", "Risk", "BMI", "Glucose", "Stroke"],
-        *[[str(row['id'])[:6], 
-           int(row['age']), 
-           row['gender'], 
-           int(row['risk_score']),
-           row['bmi_category'],
-           row['glucose_category'],
-           '✓' if row['stroke'] == 1 else '✗']
-          for _, row in high_risk.iterrows()]
-    ]
-    
-    fig.add_trace(go.Table(
-        header=dict(
-            values=["<b>" + h + "</b>" for h in table_data[0]],
-            fill_color=COLORS['vivid_orange'],
-            font=dict(color='white', size=14, family="Arial Black"),
-            align='left',
-            height=35
-        ),
-        cells=dict(
-            values=list(zip(*table_data[1:])),
-            fill_color=[COLORS['card_bg'], COLORS['background']],
-            font=dict(color=COLORS['text_primary'], size=12),
-            align='left',
-            height=30
-        )
-    ), row=2, col=2)
+    if "risk_score" in df.columns:
+        high_risk = df[df["risk_score"] >= 10].sort_values("risk_score", ascending=False).head(15)
+        
+        table_data = [
+            ["ID", "Age", "Gender", "Risk", "BMI", "Stroke"],
+        ]
+        for _, row in high_risk.iterrows():
+            table_data.append([
+                str(row.get("id", "")),
+                str(int(row.get("age", 0))),
+                str(row.get("gender", "")),
+                str(int(row.get("risk_score", 0))),
+                str(row.get("bmi_category", "")),
+                "✓" if row.get("stroke") == 1 else "X"
+            ])
+        
+        fig.add_trace(go.Table(
+            header=dict(
+                values=["<b>" + h + "</b>" for h in table_data[0]],
+                fill_color=COLORS["orange"],
+                font=dict(color="white", size=12),
+                align="left"
+            ),
+            cells=dict(
+                values=list(zip(*table_data[1:])),
+                fill_color=[COLORS["card"], COLORS["bg"]],
+                font=dict(size=10),
+                align="left"
+            )
+        ), row=2, col=2)
     
     fig.update_layout(
-        title={
-            'text': "🔍 Risk Factor Analysis - Why Strokes Occur",
-            'font': {'size': 28, 'color': COLORS['vivid_orange'], 'family': 'Arial Black'},
-            'x': 0.5,
-            'xanchor': 'center'
-        },
         showlegend=False,
         height=900,
-        plot_bgcolor=COLORS['background'],
-        paper_bgcolor=COLORS['background'],
-        font=dict(family="Arial", color=COLORS['text_primary']),
-        annotations=[
-            dict(
-                text="Created by Nqobile M",
-                xref="paper", yref="paper",
-                x=0.5, y=-0.05,
-                showarrow=False,
-                font=dict(size=12, color=COLORS['text_secondary']),
-                xanchor='center'
-            )
-        ]
+        paper_bgcolor=COLORS["bg"],
+        plot_bgcolor=COLORS["card"],
+        font=dict(color=COLORS["text"]),
+        margin=dict(l=40, r=40, t=80, b=40)
     )
     
-    fig.update_xaxes(gridcolor=COLORS['gridlines'], title_font=dict(size=14, family="Arial Black"))
-    fig.update_yaxes(gridcolor=COLORS['gridlines'], title_font=dict(size=14, family="Arial Black"))
-    
-    return fig
+    chart_html = fig.to_html(full_html=False, include_plotlyjs=False, config={"displayModeBar": True, "displaylogo": False})
 
-# ============================================================================
-# MAIN EXECUTION
-# ============================================================================
+    return f"""
+    <div class="tab-inner">
+      <h2 class="tab-title" style="color:{COLORS['orange']}">WHY? (Risk Factors)</h2>
+      {acronym_banner}
+      <div class="card">{chart_html}</div>
+    </div>
+    """
+
+# ---------------------------
+# HTML shell with tabs + simple filters
+# ---------------------------
+HTML_TEMPLATE = """<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Stroke Risk Analytics Dashboard</title>
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<style>
+  :root {{
+    --bg: {bg};
+    --card: {card};
+    --purple: {purple};
+    --red: {red};
+    --text: {text};
+    --grid: {grid};
+    --muted: {muted};
+  }}
+  body {{
+    margin: 0;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+  }}
+  header {{
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    z-index: 999;
+    border-bottom: 3px solid var(--purple);
+  }}
+  .topbar {{
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 18px;
+  }}
+  .brand {{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 900;
+    color: var(--purple);
+    font-size: 28px;
+    letter-spacing: 0.2px;
+  }}
+  .tabs {{
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }}
+  .tabbtn {{
+    border: 2px solid var(--purple);
+    background: white;
+    color: var(--purple);
+    padding: 10px 16px;
+    border-radius: 14px;
+    font-weight: 800;
+    cursor: pointer;
+  }}
+  .tabbtn.active {{
+    background: var(--purple);
+    color: white;
+  }}
+  main {{
+    padding: 18px;
+  }}
+  .tab {{
+    display: none;
+  }}
+  .tab.active {{
+    display: block;
+  }}
+  .tab-inner {{
+    max-width: 1200px;
+    margin: 0 auto;
+  }}
+  .tab-title {{
+    margin: 14px 0 12px;
+    font-size: 34px;
+    font-weight: 900;
+  }}
+  .card {{
+    background: var(--card);
+    border-radius: 18px;
+    box-shadow: 0 10px 30px rgba(18, 22, 33, 0.06);
+    padding: 10px 12px;
+    margin: 10px 0 18px;
+  }}
+  .kpi-grid {{
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 12px;
+  }}
+  .kpi-card {{
+    background: white;
+    border-radius: 16px;
+    border: 1px solid rgba(0,0,0,0.06);
+    padding: 14px;
+  }}
+  .kpi-title {{
+    color: var(--muted);
+    font-weight: 700;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+  }}
+  .kpi-value {{
+    font-size: 32px;
+    font-weight: 900;
+    margin-top: 6px;
+    color: var(--text);
+  }}
+  .insight-strip {{
+    background: white;
+    border: 3px solid var(--purple);
+    border-radius: 16px;
+    padding: 14px 16px;
+    font-weight: 900;
+    color: var(--red);
+    margin: 8px 0 12px;
+  }}
+  .speech-card {{
+    border: 3px solid var(--red);
+  }}
+  .card-title {{
+    font-weight: 900;
+    font-size: 18px;
+    color: var(--purple);
+    margin: 6px 4px 10px;
+  }}
+  .card-subtitle {{
+    font-weight: 900;
+    color: var(--purple);
+    margin-top: 8px;
+  }}
+  .card-section ul {{
+    margin: 8px 0 0 22px;
+  }}
+  .acronym-banner {{
+    background: {orange};
+    color: white;
+    border: 3px solid var(--red);
+    border-radius: 16px;
+    padding: 12px 14px;
+    font-weight: 900;
+    margin-bottom: 12px;
+  }}
+  footer {{
+    text-align: center;
+    color: var(--muted);
+    padding: 10px 0 18px;
+    font-weight: 700;
+  }}
+  @media (max-width: 900px) {{
+    .kpi-grid {{ grid-template-columns: 1fr; }}
+  }}
+</style>
+</head>
+<body>
+<header>
+  <div class="topbar">
+    <div class="brand">{ribbon} Stroke Analytics</div>
+    <div class="tabs">
+      <button class="tabbtn active" data-tab="tab1">📊 WHAT? (Overview)</button>
+      <button class="tabbtn" data-tab="tab2">🗺️ WHERE? (Geography)</button>
+      <button class="tabbtn" data-tab="tab3">🔎 WHY? (Risk Factors)</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section id="tab1" class="tab active">{tab1}</section>
+  <section id="tab2" class="tab">{tab2}</section>
+  <section id="tab3" class="tab">{tab3}</section>
+</main>
+
+<footer>Created by Nqobile M</footer>
+
+<script>
+  const btns = document.querySelectorAll(".tabbtn");
+  const tabs = document.querySelectorAll(".tab");
+  btns.forEach(b => b.addEventListener("click", () => {{
+    btns.forEach(x => x.classList.remove("active"));
+    tabs.forEach(t => t.classList.remove("active"));
+    b.classList.add("active");
+    document.getElementById(b.dataset.tab).classList.add("active");
+    window.scrollTo({{top: 0, behavior: "smooth"}});
+  }}));
+</script>
+</body>
+</html>
+"""
+
+def main() -> None:
+    print("Loading stroke data...")
+    df = load_data()
+    df = normalise_columns(df)
+    print(f"Loaded {len(df):,} records")
+    tab1 = build_tab1(df)
+    tab2 = build_tab2(df)
+    tab3 = build_tab3(df)
+
+    html = HTML_TEMPLATE.format(
+        bg=COLORS["bg"],
+        card=COLORS["card"],
+        purple=COLORS["base_purple"],
+        red=COLORS["stroke_red"],
+        text=COLORS["text"],
+        grid=COLORS["grid"],
+        muted=COLORS["muted"],
+        orange=COLORS["orange"],
+        ribbon=RIBBON_SVG,
+        tab1=tab1,
+        tab2=tab2,
+        tab3=tab3,
+    )
+
+    Path("index.html").write_text(html, encoding="utf-8")
+    print("✅ Wrote index.html (single-page tabbed dashboard). Open it in your browser.")
 
 if __name__ == "__main__":
-    print("\n" + "="*70)
-    print("🎨 STROKE RISK ANALYTICS - ENHANCED DASHBOARD")
-    print("="*70 + "\n")
-    
-    print("Creating enhanced visualizations with vibrant Gen Z aesthetic...")
-    
-    tab1 = create_tab1_enhanced()
-    print("✓ Tab 1: Executive Overview (vibrant purple/pink)")
-    
-    tab2 = create_tab2_enhanced()
-    print("✓ Tab 2: Geographic Analysis (electric blue/lime green)")
-    
-    tab3 = create_tab3_enhanced()
-    print("✓ Tab 3: Risk Factor Analysis (vivid orange/amber)")
-    
-    # Save
-    print("\n💾 Saving dashboards...")
-    tab1.write_html("stroke_dashboard_tab1_what.html", config={'displayModeBar': True, 'displaylogo': False})
-    print("  ✓ stroke_dashboard_tab1_what.html")
-    
-    tab2.write_html("stroke_dashboard_tab2_where.html", config={'displayModeBar': True, 'displaylogo': False})
-    print("  ✓ stroke_dashboard_tab2_where.html")
-    
-    tab3.write_html("stroke_dashboard_tab3_why.html", config={'displayModeBar': True, 'displaylogo': False})
-    print("  ✓ stroke_dashboard_tab3_why.html")
-    
-    # Open
-    print("\n🌐 Opening dashboard...")
-    import webbrowser
-    webbrowser.open('stroke_dashboard_tab1_what.html')
-    
-    print("\n" + "="*70)
-    print("✨ DASHBOARD COMPLETE! ✨")
-    print("="*70)
-    print("\n🎨 Features:")
-    print("  • Vibrant Gen Z color palette")
-    print("  • No Plotly watermark")
-    print("  • Custom footer with your name")
-    print("  • Interactive hover & zoom")
-    print("  • Professional styling")
-    print("\n📁 Files created:")
-    print("  • stroke_dashboard_tab1_what.html")
-    print("  • stroke_dashboard_tab2_where.html")
-    print("  • stroke_dashboard_tab3_why.html")
-    print("\n🎯 Open index.html to see navigation page!")
-    print("="*70 + "\n")
+    main()
