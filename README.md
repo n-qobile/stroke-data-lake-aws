@@ -223,7 +223,7 @@ aws s3 cp data/raw/healthcare-dataset-stroke-data.csv \
 
 # 5. Generate dashboards
 cd dashboards
-python dashboard_enhanced.py
+python dashboard.py
 # This creates index.html and 3 tab HTML files
 
 # 6. Commit HTML files and enable GitHub Pages
