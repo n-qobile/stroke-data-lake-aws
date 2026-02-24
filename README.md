@@ -37,7 +37,7 @@ Kaggle Dataset (CSV)
         ▼
 ┌──────────────────────────────────────────────────────────┐
 │  BRONZE LAYER                                            │
-│  S3 Raw Bucket → Glue Crawler → Glue Data Catalogue     │
+│  S3 Raw Bucket → Glue Crawler → Glue Data Catalogue      │
 └──────────────────────────────────────────────────────────┘
         │
         ▼
@@ -51,7 +51,7 @@ Kaggle Dataset (CSV)
         ▼
 ┌──────────────────────────────────────────────────────────┐
 │  SILVER LAYER                                            │
-│  S3 Processed Bucket → Glue Crawler → Glue Catalogue    │
+│  S3 Processed Bucket → Glue Crawler → Glue Catalogue     │
 │  Apache Parquet  •  Snappy compression                   │
 └──────────────────────────────────────────────────────────┘
         │
@@ -64,7 +64,7 @@ Kaggle Dataset (CSV)
         ▼
 ┌──────────────────────────────────────────────────────────┐
 │  VISUALISATION  (GitHub Pages)                           │
-│  Python Plotly → Static HTML Export → GitHub Pages      │
+│  Python Plotly → Static HTML Export → GitHub Pages       │
 │  No backend server required  •  Free hosting             │
 └──────────────────────────────────────────────────────────┘
 ```
