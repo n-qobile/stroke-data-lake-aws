@@ -252,6 +252,9 @@ def build_tab1(df: pd.DataFrame) -> str:
       <div class="card">
         {chart_html}
       </div>
+      <div style="text-align: center; margin-top: 20px; color: #5F6368; font-size: 11px;">
+        Created by Nqobile M | Speech Therapist & Cloud Data Engineer
+      </div>
     </div>
     """
     return html_out
@@ -354,8 +357,14 @@ def build_tab2(df: pd.DataFrame) -> str:
             d = df[df["Residence_type"] == res]
             fig.add_trace(go.Scatter(
                 x=d["age"], y=d["risk_score"], mode="markers",
-                marker=dict(size=7, color=col, opacity=0.7),
-                name=res
+                marker=dict(
+                    size=8,
+                    color=col,
+                    opacity=0.4,
+                    symbol='circle'
+                ),
+                name=res,
+                hovertemplate="<b>" + res + "</b><br>Age: %{x}<br>Risk: %{y}<extra></extra>"
             ), row=2, col=2)
 
     fig.update_layout(
@@ -369,7 +378,7 @@ def build_tab2(df: pd.DataFrame) -> str:
     fig.update_xaxes(gridcolor=COLORS["grid"])
     fig.update_yaxes(gridcolor=COLORS["grid"])
 
-    chart_html = fig.to_html(full_html=False, include_plotlyjs=False)
+    chart_html = fig.to_html(full_html=False, include_plotlyjs='cdn', config={'displayModeBar': True, 'displaylogo': False})
 
     # Insight text as HTML (never overlaps charts)
     if not np.isnan(urban_rate) and not np.isnan(rural_rate) and rural_rate > 0:
@@ -416,6 +425,9 @@ def build_tab2(df: pd.DataFrame) -> str:
       {insight_box}
       <div class="card">{chart_html}</div>
       {speech_card}
+      <div style="text-align: center; margin-top: 20px; color: #5F6368; font-size: 11px;">
+        Created by Nqobile M | Speech Therapist & Cloud Data Engineer
+      </div>
     </div>
     """
 
@@ -531,13 +543,16 @@ def build_tab3(df: pd.DataFrame) -> str:
         margin=dict(l=40, r=40, t=80, b=40)
     )
     
-    chart_html = fig.to_html(full_html=False, include_plotlyjs=False, config={"displayModeBar": True, "displaylogo": False})
+    chart_html = fig.to_html(full_html=False, include_plotlyjs='cdn', config={"displayModeBar": True, "displaylogo": False})
 
     return f"""
     <div class="tab-inner">
       <h2 class="tab-title" style="color:{COLORS['orange']}">WHY? (Risk Factors)</h2>
       {acronym_banner}
       <div class="card">{chart_html}</div>
+      <div style="text-align: center; margin-top: 20px; color: #5F6368; font-size: 11px;">
+        Created by Nqobile M | Speech Therapist & Cloud Data Engineer
+      </div>
     </div>
     """
 
@@ -721,7 +736,7 @@ HTML_TEMPLATE = """<!doctype html>
   <section id="tab3" class="tab">{tab3}</section>
 </main>
 
-<footer>Created by Nqobile M</footer>
+<!-- Footer now in Tab 1 only -->
 
 <script>
   const btns = document.querySelectorAll(".tabbtn");
