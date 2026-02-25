@@ -19,13 +19,19 @@ No installation required. Navigate between tabs directly in your browser:
 - 🗺️ **WHERE?** — Geographic analysis and urban vs rural disparities.
 - 🔍 **WHY?** — Risk factor analysis and comorbidity patterns.
 
+<img width="1352" height="603" alt="stroke-data-lake-dashboard" src="https://github.com/user-attachments/assets/94a777f8-1496-4a3f-a0c4-95caae3c8c65" />
+
 ---
 
 ## ⭐ Key Finding
 
 > **Urban areas detect more strokes (5.2%) than rural areas (4.5%).**
 >
-> This suggests a diagnostic access gap — rural residents face barriers such as limited specialist availability, delayed diagnosis, and transportation challenges. This finding has direct implications for telehealth expansion and rural speech therapy resource allocation.
+> This suggests a diagnostic access gap — rural residents face barriers such as limited specialist availability, delayed diagnosis, and transportation challenges. This finding has direct implications for the expansion of telehealth and the allocation of rural speech therapy resources.
+> The 75+ age group demonstrated the highest stroke risk.
+> Hypertension, heart disease, glucose level, and BMI combine to increase stroke risk — reinforcing the importance of early preventative intervention.
+> Based on stroke case counts:
+> - 70% require speech-language therapy
 
 ---
 
@@ -78,7 +84,7 @@ See `docs/architectural_diagrams/architecture-diagram.png` for the full visual d
 ```
 stroke-data-lake-aws/
 │
-├── terraform/                  # Infrastructure as Code
+├── terraform/                   # Infrastructure as Code
 │   ├── main.tf
 │   ├── variables.tf
 │   ├── s3.tf
@@ -86,26 +92,29 @@ stroke-data-lake-aws/
 │   ├── glue.tf
 │   └── athena.tf
 │
-├── dashboard.py                # Dashboard generation
+├── dashboard.py                 # Dashboard generation
 │
-├── sql-queries/                # Analytical SQL queries
+├── index.html                   # Dashboard tab navigation (GitHub Pages)
+|
+├── sql-queries/                 # Analytical SQL queries
 │   └── analysis_queries.sql
 │
-├── lambda/                     # Alternative ETL (not deployed)
+├── lambda/                      # Alternative ETL (not deployed)
 │   └── transform_data.py
 │
 ├── scripts/                     # Alternative Glue Script (not deployed)
 │   └── glue_script_fixed.py
 │
-├── docs/                       # Documentation
-│   ├── architecture-diagram.png
-│   └── technical-report.md
-|   └── deployment-guide.md
-│   └──screenshots/                # Evidence: queries & AWS services
+├── docs/                        # Documentation
+│   ├── architectural_diagrams/
+│     ├── architecture-diagram.md
+│     └── architecture-diagram.png
+│   ├── deployment-guide.md
+|   ├── technical-report.md  
+│   └──screenshots/              # Evidence: queries & AWS services
 |
-├── index.html                  # Dashboard tab navigation (GitHub Pages)
-│
 ├── README.md
+|
 └── .gitignore
 ```
 
@@ -129,7 +138,7 @@ stroke-data-lake-aws/
 |---------|------|-------------|
 | Urban vs Rural Detection | 5.2% vs 4.5% | Healthcare access gap |
 | Highest Risk Age Group | 75+ (43 cases) | Priority for services |
-| Average Risk Score | 5.3 out of 20 | Moderate risk population |
+| Average Risk Score | 5.78 out of 20 | Moderate risk population |
 | Comorbidity Rate | HTN + HD + Smoking = 18.5% | Compounding effect |
 | SLP Demand | ~174 patients | ~2,088 therapy sessions needed |
 
@@ -222,7 +231,7 @@ aws s3 cp data/raw/healthcare-dataset-stroke-data.csv \
 # 4. Run Glue ETL job (via AWS Console or CLI)
 
 # 5. Generate dashboards
-cd dashboards
+cd stroke-data-lake-aws
 python dashboard.py
 # This creates index.html and 3 tab HTML files
 
